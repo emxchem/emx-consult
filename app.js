@@ -76,17 +76,55 @@ document.querySelectorAll('[data-case]').forEach(b=>b.addEventListener('click',(
 modal.querySelector('.modal-bg').addEventListener('click',closeCase);
 addEventListener('keydown',e=>{if(e.key==='Escape')closeCase()});
 if(location.hash.startsWith('#/work/'))openCase(location.hash.split('/')[2]);
-// Inquiry form — frontend only, ready for n8n webhook integration.
-// INTEGRATION POINT: POST the `d` object to your n8n webhook URL, e.g.
-//   fetch('https://YOUR-n8n/webhook/emx-inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
-// Until connected, submissions fall back to a mailto draft — the page never breaks.
+// Inquiry form → n8n webhook integration.
+// All sensitive processing stays inside n8n; no credentials live here.
+const WEBHOOK_URL =
+  "https://sprtsamurai.app.n8n.cloud/webhook/Emx_consult";
 const form=document.getElementById('inquiry'),note=document.getElementById('formnote');
-const WEBHOOK_URL='';
-form.addEventListener('submit',e=>{e.preventDefault();
-const d=Object.fromEntries(new FormData(form).entries());
-console.log('INQUIRY (wire to n8n webhook):',d);
-if(WEBHOOK_URL){fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(err=>console.warn('Webhook failed, used mailto fallback:',err))}
-const first=(d.name||'').split(' ')[0];
-note.innerHTML=`Thanks${first?(' <b>'+first+'</b>'):''} — your brief is ready. <span style="color:var(--muted)">Send it directly: <a style="color:var(--lime)" href="mailto:adebayoemmanuelibk@gmail.com?subject=${encodeURIComponent('Project inquiry — '+(d.company||d.name||''))}&body=${encodeURIComponent(d.need||d.message||'')}">adebayoemmanuelibk@gmail.com</a>.</span>`;
-note.style.borderColor='rgba(199,255,61,.5)';form.reset();});
+const submitBtn=form.querySelector('[type="submit"]');
+const submitLabel=submitBtn.innerHTML;
+let sending=false;
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(sending)return;
+  if(!form.reportValidity())return;
+  sending=true;
+  submitBtn.disabled=true;
+  submitBtn.innerHTML='Sending…';
+  const d=Object.fromEntries(new FormData(form).entries());
+  const payload={
+    name:(d.name||'').trim(),
+    email:(d.email||'').trim(),
+    company:(d.company||'').trim(),
+    service:d.type||'',
+    need:(d.need||'').trim(),
+    budget:d.budget||'',
+    timeline:d.timeline||'',
+    message:(d.message||'').trim(),
+    source:'EMX Consult Website',
+    page:location.origin+location.pathname,
+    submittedAt:new Date().toISOString()
+  };
+  try{
+    const ctrl=new AbortController();
+    const timer=setTimeout(()=>ctrl.abort(),15000);
+    let res;
+    try{
+      res=await fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:ctrl.signal});
+    }finally{clearTimeout(timer)}
+    if(!res.ok)throw new Error('Webhook responded '+res.status);
+    try{await res.text()}catch(_){/* body optional — status is what matters */}
+    note.innerHTML='<b>Thank you. Your inquiry has been received.</b> <span style="color:var(--muted)">EMX Consult will review your request and get back to you shortly.</span>';
+    note.style.borderColor='rgba(199,255,61,.5)';
+    form.reset();
+  }catch(err){
+    console.warn('Inquiry submission failed:',err);
+    note.innerHTML='<b>We couldn\'t submit your inquiry right now.</b> <span style="color:var(--muted)">Please try again or contact EMX Consult directly by email: <a style="color:var(--lime)" href="mailto:adebayoemmanuelibk@gmail.com">adebayoemmanuelibk@gmail.com</a>.</span>';
+    note.style.borderColor='rgba(255,120,120,.55)';
+  }finally{
+    sending=false;
+    submitBtn.disabled=false;
+    submitBtn.innerHTML=submitLabel;
+  }
+});
 document.getElementById('yr').textContent=new Date().getFullYear();
