@@ -40,11 +40,11 @@ h1,h2,h3{font-family:var(--font-d);margin:0;text-wrap:balance}
 .nav.scrolled .nav-inner{padding:12px 24px}
 .logo{text-decoration:none;display:flex;align-items:center;gap:12px;font-family:var(--font-d);font-weight:800;letter-spacing:.04em;color:#F5F5F2}
 .brand-symbol{height:30px;width:auto;display:block;flex:none}
-.brand-node{transition:transform .35s ease;transform-box:fill-box;transform-origin:center}
-.logo:hover .brand-node{transform:scale(1.18)}
+.brand-x{transition:filter .3s ease}
+.logo:hover .brand-x{filter:drop-shadow(0 0 6px rgba(182,255,0,.45))}
 .brand-word{font-family:var(--font-d);font-weight:700;font-size:17px;letter-spacing:.06em;line-height:1;display:flex;flex-direction:column;gap:5px}
 .brand-word span{font-family:var(--font-m);font-weight:400;font-size:9px;letter-spacing:.34em;color:var(--muted)}
-.brand-mono .brand-node{fill:currentColor}
+.brand-mono .brand-x{stroke:currentColor}
 .brand-on-light{color:#0B0D10}
 .foot-grid .brand-symbol{height:26px}
 .links{display:flex;gap:28px;align-items:center}

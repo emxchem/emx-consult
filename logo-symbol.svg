@@ -1,9 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 89 64" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102 64" fill="none">
   <title>EMX Consult symbol</title>
-  <g stroke="#F5F5F2" stroke-width="6" stroke-linecap="square">
-    <path d="M25 17H9v30h16M9 32h13"/>
-    <path d="M34 47V17l10 18 10-18v30"/>
-    <path d="M62 17l18 30M80 17L62 47"/>
+  <g stroke="#F5F5F2" stroke-width="8" stroke-linecap="square">
+    <path d="M14 12H68M14 52H68M14 12V52M14 32H30"/>
+    <path d="M40 52V12L50 32L60 12V52"/>
   </g>
-  <path d="M71 27l5 5-5 5-5-5Z" fill="#B6FF00"/>
+  <path d="M68 12L88 52M88 12L68 52" stroke="#B6FF00" stroke-width="8" stroke-linecap="square"/>
 </svg>

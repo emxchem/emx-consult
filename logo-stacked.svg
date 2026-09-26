@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 152" fill="none">
+  <title>EMX Consult — stacked lockup</title>
+  <g transform="translate(59 6) scale(0.8)">
+    <g stroke="#F5F5F2" stroke-width="8" stroke-linecap="square">
+      <path d="M14 12H68M14 52H68M14 12V52M14 32H30"/>
+      <path d="M40 52V12L50 32L60 12V52"/>
+    </g>
+    <path d="M68 12L88 52M88 12L68 52" stroke="#B6FF00" stroke-width="8" stroke-linecap="square"/>
+  </g>
+  <text x="100" y="102" text-anchor="middle" font-family="'Space Grotesk',Arial,sans-serif" font-weight="700" font-size="36" letter-spacing="2" fill="#F5F5F2">EMX</text>
+  <text x="100" y="126" text-anchor="middle" font-family="'IBM Plex Mono','Courier New',monospace" font-size="12" letter-spacing="5" fill="#9BA3AD">CONSULT</text>
+</svg>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 102 64" fill="none">
+  <title>EMX Consult symbol — for light backgrounds</title>
+  <g stroke="#101418" stroke-width="8" stroke-linecap="square">
+    <path d="M14 12H68M14 52H68M14 12V52M14 32H30"/>
+    <path d="M40 52V12L50 32L60 12V52"/>
+    <path d="M68 12L88 52M88 12L68 52"/>
+  </g>
+</svg>
