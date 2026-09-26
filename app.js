@@ -9,26 +9,63 @@ document.querySelectorAll('.step').forEach(s=>new IntersectionObserver((es,o)=>e
 // active nav
 const secs=[...document.querySelectorAll('section[id]')];
 const links=[...document.querySelectorAll('.links a')];
-new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id))}}),{rootMargin:'-40% 0px -55% 0px'}).observe && secs.forEach(s=>new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle('active',l.hash==='#'+s.id))}),{rootMargin:'-40% 0px -55% 0px'}).observe(s));
-// Case study modal data
+secs.forEach(s=>new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle('active',l.hash==='#'+s.id))}),{rootMargin:'-40% 0px -55% 0px'}).observe(s));
+// Testimonials toggle
+const tgl=document.getElementById('testitoggle'),more=document.getElementById('testimore');
+if(tgl&&more){tgl.addEventListener('click',()=>{const open=more.hasAttribute('hidden');if(open){more.removeAttribute('hidden')}else{more.setAttribute('hidden','')}tgl.setAttribute('aria-expanded',String(open));tgl.innerHTML=open?'Show fewer reviews <span class="ar">↑</span>':'Show more reviews <span class="ar">↓</span>';if(open)more.querySelectorAll('.testi').forEach(el=>{el.classList.add('in')})});}
+// Hero particles (subtle, pauses offscreen, off for reduced motion)
+(function(){const cv=document.getElementById('dust');if(!cv)return;if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+const ctx=cv.getContext('2d');let W,H,pts=[],run=true;
+function size(){const r=cv.parentElement.getBoundingClientRect();W=cv.width=r.width;H=cv.height=r.height}
+size();addEventListener('resize',size);
+for(let i=0;i<42;i++)pts.push({x:Math.random(),y:Math.random(),vx:(Math.random()-.5)*.0006,vy:(Math.random()-.5)*.0006,r:Math.random()*1.6+.4,l:Math.random()<.18});
+new IntersectionObserver(es=>run=es[0].isIntersecting).observe(cv);
+(function tick(){requestAnimationFrame(tick);if(!run)return;ctx.clearRect(0,0,W,H);
+pts.forEach(p=>{p.x=(p.x+p.vx+1)%1;p.y=(p.y+p.vy+1)%1;ctx.beginPath();ctx.arc(p.x*W,p.y*H,p.r,0,7);ctx.fillStyle=p.l?'rgba(182,255,0,.5)':'rgba(245,245,242,.22)';ctx.fill()});
+ctx.strokeStyle='rgba(245,245,242,.05)';ctx.lineWidth=1;
+for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=(pts[i].x-pts[j].x)*W,dy=(pts[i].y-pts[j].y)*H;if(dx*dx+dy*dy<9000){ctx.beginPath();ctx.moveTo(pts[i].x*W,pts[i].y*H);ctx.lineTo(pts[j].x*W,pts[j].y*H);ctx.stroke()}}})()})();
+// Case study data — qualitative outcomes only, no invented metrics
 const CASES={
-lead:{cat:'Automation / AI Agents',title:'AI Lead Generation Engine',sub:'From prospect discovery to sales-ready intelligence.',challenge:' prospect data is scattered, research is manual, and outreach lists lack structure. Teams spend hours qualifying leads that never convert.',system:'A staged automation architecture: discover → research → enrich → analyze → qualify → activate. Each stage structures data before passing it downstream.',steps:['Discover prospect sources and collect raw business data','Research and enrich with firmographic signals','AI analysis: fit, intent and quality scoring','Qualification gate with structured output','Activation: push sales-ready records to outreach / CRM'],intel:'LLM classification over enriched fields — industry, size signals, contact quality — producing a consistent qualification schema instead of gut-feel lists.',integ:['n8n','OpenAI / LLMs','Google Sheets / Database','Webhooks → CRM / outreach'],outcome:'A repeatable pipeline. No invented volumes claimed — value is measured in hours saved and consistency of qualification.',lesson:'Structure the data first; AI judgement is only reliable on clean inputs.'},
-support:{cat:'Conversational AI / Ops',title:'AI Customer Operations',sub:'Intelligent support with human escalation.',challenge:'Support inboxes mix orders, subscriptions and general questions. Manual triage is slow and inconsistent.',system:'Automated intake → ticket normalization → AI analysis/classification → business-data lookup → decision logic → auto-resolve or human review.',steps:['Customer message intake (chat / email)','Normalize into a standard ticket object','AI classifies intent + urgency','Lookup order / subscription context','Decision: auto-resolve with grounded answer OR route to human with full context'],intel:'The key rule: automation should know when to act — and when to involve a human. Confidence thresholds and policy checks gate every auto-response.',integ:['n8n','LLMs + knowledge base','Shopify / order systems','Email / messaging'],outcome:'Faster first response, consistent triage, and humans only where judgement is needed.',lesson:'Escalation design is the product — not an afterthought.'},
-agents:{cat:'Multi-Agent Systems',title:'Multi-Agent Business System',sub:'One intelligent layer. Multiple specialist systems.',challenge:'One giant prompt/agent forced to do everything becomes fragile. Routing, tools and context collide.',system:'Master agent → intent routing → specialist agents → execution → unified result. Specialists own narrow tools and schemas.',steps:['Master agent receives request + context','Router classifies task type','Specialist agent executes with scoped tools','Results validated and merged','Final response + logged actions'],intel:'Routing + scoped memory. Each specialist sees only what it needs, keeping reasoning sharp and auditable.',integ:['n8n / orchestration','OpenAI agents','APIs + webhooks','Supabase / Sheets'],outcome:'Modular, debuggable automation that can grow by adding specialists — not rewriting everything.',lesson:'Decompose before you automate.'},
-voice:{cat:'Voice AI',title:'AI Voice Receptionist',sub:'Conversations that connect to business operations.',challenge:'Missed calls mean missed revenue. Hiring full-time cover for every call is expensive for small businesses.',system:'Call → conversation → understand → decide → book / update / escalate → business system.',steps:['Inbound call answered instantly','Natural conversation + info capture','Extract structured intent (booking, query, urgency)','Trigger workflow: calendar / CRM / ticket','Escalate to human when needed with transcript'],intel:'Speech-to-text → LLM reasoning over business knowledge → structured extraction → tool calls. Development/tested flows; production scope confirmed per client.',integ:['Twilio / Voice','Conversational AI','Google Calendar / Workspace','CRM + notifications'],outcome:'No missed first contact; every call becomes structured data. Deployment claims kept honest to tested scope.',lesson:'Voice AI succeeds on extraction accuracy, not chattiness.'},
-ecom:{cat:'E-commerce',title:'E-commerce Growth Automation',sub:'Connecting customer data, campaigns and operations.',challenge:'Stores collect orders but fail to segment, follow up, and recover revenue systematically.',system:'Store → customer data → segmentation → AI / campaign logic → communication → follow-up.',steps:['Sync orders + customer events','Segment by behavior and value','Generate campaign logic / content angles','Send email / messaging flows','Post-purchase + win-back follow-up'],integ:['Shopify','Stripe','Email / messaging','Sheets / CRM'],intel:'Segmentation plus AI-assisted messaging keeps campaigns relevant without manual list-pulling.',outcome:'A connected loop from purchase to repeat purchase — scoped to integrations actually implemented.',lesson:'Retention is a system, not a blast.'},
-content:{cat:'Media Automation',title:'AI Content Production System',sub:'From idea to publishable media.',challenge:'Consistent content requires scripting, voice, visuals, editing and distribution — too many steps to sustain manually.',system:'Idea → script → voice → visuals → video → distribution.',steps:['Idea + brief capture','AI script draft + human polish','Voice generation','Visual / video assembly','Review gate','Scheduled distribution'],integ:['LLMs','Voice generation','AI video + editing','Social schedulers'],intel:'Human-in-the-loop review gates keep quality high; automation handles assembly and formatting.',outcome:'Faster throughput without pretending to be a full media house. Scale stated honestly.',lesson:'Automate the pipeline, keep taste human.'}};
+lead:{cat:'AI • Automation • Lead Generation',title:'AI-Powered Lead Generation System',sub:'Discover, enrich, qualify and organize prospects.',shot:'work/work-lead-generation.png',shotAlt:'n8n workflow canvas for the AI lead generation pipeline',
+problem:'Prospect data is scattered, research is manual, and outreach lists lack structure. Teams spend hours qualifying leads that never convert.',
+approach:'Stage the pipeline so each step structures data before passing it downstream: discover sources, enrich records, apply AI qualification, then organize sales-ready output.',
+system:'Discover → search → enrich → AI qualify → organize. Research branches run in parallel and merge into a single structured record per prospect.',
+tech:['n8n','AI','APIs','Lead Generation','Data Enrichment'],
+outcome:'A repeatable pipeline where outreach starts from structured intelligence instead of raw lists. Value shows in hours saved and consistency of qualification.'},
+support:{cat:'AI • Customer Support • Automation',title:'AI Support Operations System',sub:'Classify, route and resolve — with human review.',shot:'work/work-support-ops.png',shotAlt:'n8n workflow canvas for the AI support operations system',
+problem:'Support inboxes mix simple questions with complex cases. Manual triage is slow, inconsistent, and pulls humans into work automation could handle.',
+approach:'Classify every request with AI, check order and subscription context, then decide: auto-resolve what is safe, route the rest to a human with full context attached.',
+system:'Intake → AI classification → business-data lookup → decision logic → auto-resolve or human-review branch, with the full trail preserved.',
+tech:['n8n','AI Agents','Zendesk','Automation','Human Escalation'],
+outcome:'Faster first responses and consistent triage, with humans involved exactly where judgement is needed. Automation knows when to act — and when to escalate.'},
+marketing:{cat:'AI • Marketing • Automation',title:'AI Marketing Operations Platform',sub:'Campaigns, content and retention in one architecture.',shot:'work/work-marketing-ops.png',shotAlt:'n8n workflow canvas for the AI marketing operations platform',
+problem:'Marketing work fragments across planning docs, content drafts, SEO tasks, social queues and retention emails — nothing connects, so effort leaks.',
+approach:'Treat marketing as one architecture: a planning core that fans out to content, SEO, social and retention branches, then merges reporting back.',
+system:'Campaign planning → content generation → SEO and social distribution → retention operations, orchestrated as connected n8n workflows.',
+tech:['n8n','AI','SEO','Social Media','Marketing Automation'],
+outcome:'Scattered tactics become one operable system — planned once, executed across channels, with retention closing the loop.'},
+voice:{cat:'Conversational AI • Automation • Booking',title:'Voice AI Receptionist',sub:'Customer calls handled end-to-end.',shot:'work/work-voice-ai.png',shotAlt:'n8n workflow canvas for the voice AI receptionist',
+problem:'Missed calls mean missed revenue, and hiring cover for every call is expensive. Even answered calls lose context before anything gets booked or followed up.',
+approach:'Answer every call conversationally, extract structured intent as the conversation happens, then trigger the right backend workflow — booking, update, or escalation.',
+system:'Call → conversation → understanding → structured extraction → booking / messaging / sheet updates, all from one workflow.',
+tech:['ElevenLabs','n8n','AI','Voice','API Integration'],
+outcome:'No missed first contact, and every conversation becomes structured data with booked actions instead of scribbled notes.'},
+engine:{cat:'Workflow Engineering • API Integration',title:'Automated Business Workflow Engine',sub:'Branching logic, data and execution.',shot:'work/work-workflow-engine.png',shotAlt:'n8n workflow canvas for the automated business workflow engine',
+problem:'Business processes run on manual handoffs across disconnected tools. One missed step breaks the chain and nobody can see where.',
+approach:'Model the process as an explicit engine: triggers, conditional branches, data processing and execution paths — visible, testable, repeatable.',
+system:'Trigger → conditional logic → API calls and data transforms → executed outcomes, with branching paths for every real-world case.',
+tech:['n8n','REST APIs','Webhooks','Google Workspace','Automation'],
+outcome:'Fragile handoffs become reliable execution paths — the process runs the same way every time, and exceptions surface instead of vanishing.'}};
 const modal=document.getElementById('modal'),mbox=document.getElementById('mbox');
 function openCase(k){const c=CASES[k];if(!c)return;
 mbox.innerHTML=`<button class="closebtn" id="mclose" aria-label="Close">✕</button>
 <p class="label">${c.cat}</p><h3>${c.title}</h3><p class="sub" style="font-family:var(--font-m);font-size:12px;letter-spacing:.14em;color:var(--silver);text-transform:uppercase">${c.sub}</p>
-<div class="case-sec"><b>THE CHALLENGE</b><p style="color:var(--muted)">${c.challenge}</p></div>
-<div class="case-sec"><b>THE SYSTEM</b><p style="color:var(--muted)">${c.system}</p></div>
-<div class="case-sec"><b>HOW IT WORKS</b><ol style="color:var(--muted)">${(c.steps||[]).map(s=>`<li>${s}</li>`).join('')}</ol></div>
-<div class="case-sec"><b>INTELLIGENCE LAYER</b><p style="color:var(--muted)">${c.intel}</p></div>
-<div class="case-sec"><b>INTEGRATIONS</b><p>${(c.integ||[]).map(t=>`<span class="mini-tags"><span style="font-family:var(--font-m);font-size:11px;border:1px solid var(--line2);border-radius:999px;padding:6px 11px;margin:0 6px 6px 0;display:inline-block">${t}</span></span>`).join('')}</p></div>
+<figure class="shot modal-shot"><img src="${c.shot}" alt="${c.shotAlt}" loading="lazy"></figure>
+<div class="case-sec"><b>PROBLEM</b><p style="color:var(--muted)">${c.problem}</p></div>
+<div class="case-sec"><b>APPROACH</b><p style="color:var(--muted)">${c.approach}</p></div>
+<div class="case-sec"><b>SYSTEM</b><p style="color:var(--muted)">${c.system}</p></div>
+<div class="case-sec"><b>TECHNOLOGY</b><p>${c.tech.map(t=>`<span style="font-family:var(--font-m);font-size:11px;border:1px solid var(--line2);border-radius:999px;padding:6px 11px;margin:0 6px 6px 0;display:inline-block">${t}</span>`).join('')}</p></div>
 <div class="case-sec"><b>OUTCOME</b><p style="color:var(--muted)">${c.outcome}</p></div>
-<div class="case-sec"><b>LESSON</b><p style="color:var(--muted)">${c.lesson}</p></div>
 <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap"><a class="btn solid" href="#contact">Have a similar problem? Start a project ↗</a></div>`;
 modal.classList.add('open');document.body.style.overflow='hidden';
 document.getElementById('mclose').onclick=closeCase;
@@ -39,12 +76,17 @@ document.querySelectorAll('[data-case]').forEach(b=>b.addEventListener('click',(
 modal.querySelector('.modal-bg').addEventListener('click',closeCase);
 addEventListener('keydown',e=>{if(e.key==='Escape')closeCase()});
 if(location.hash.startsWith('#/work/'))openCase(location.hash.split('/')[2]);
-// form: frontend only, clear integration point
+// Inquiry form — frontend only, ready for n8n webhook integration.
+// INTEGRATION POINT: POST the `d` object to your n8n webhook URL, e.g.
+//   fetch('https://YOUR-n8n/webhook/emx-inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)})
+// Until connected, submissions fall back to a mailto draft — the page never breaks.
 const form=document.getElementById('inquiry'),note=document.getElementById('formnote');
+const WEBHOOK_URL='';
 form.addEventListener('submit',e=>{e.preventDefault();
 const d=Object.fromEntries(new FormData(form).entries());
-// INTEGRATION POINT: POST `d` to /api/contact or Formspree/Webhook, or send to adebayoemmanuelibk@gmail.com
-note.innerHTML=`Thanks ${d.name?('<b>'+d.name.split(' ')[0]+'</b> — '):''}your brief is ready. <br><span style="color:var(--muted)">To activate delivery, connect this form to your endpoint (see <code>app.js → INTEGRATION POINT</code>), or email directly: <a style="color:var(--lime)" href="mailto:adebayoemmanuelibk@gmail.com?subject=${encodeURIComponent('Project inquiry — '+(d.company||d.name||''))}&body=${encodeURIComponent(JSON.stringify(d,null,2))}">adebayoemmanuelibk@gmail.com</a>.</span>`;
-note.style.borderColor='rgba(199,255,61,.5)';form.reset();
-console.log('INQUIRY (wire to backend):',d);});
+console.log('INQUIRY (wire to n8n webhook):',d);
+if(WEBHOOK_URL){fetch(WEBHOOK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(err=>console.warn('Webhook failed, used mailto fallback:',err))}
+const first=(d.name||'').split(' ')[0];
+note.innerHTML=`Thanks${first?(' <b>'+first+'</b>'):''} — your brief is ready. <span style="color:var(--muted)">Send it directly: <a style="color:var(--lime)" href="mailto:adebayoemmanuelibk@gmail.com?subject=${encodeURIComponent('Project inquiry — '+(d.company||d.name||''))}&body=${encodeURIComponent(d.need||d.message||'')}">adebayoemmanuelibk@gmail.com</a>.</span>`;
+note.style.borderColor='rgba(199,255,61,.5)';form.reset();});
 document.getElementById('yr').textContent=new Date().getFullYear();
