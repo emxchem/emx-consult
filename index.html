@@ -271,7 +271,22 @@
     <div class="copy"><span>© <span id="yr">2026</span> EMX Consult. All rights reserved.</span><span>PROBLEM → SYSTEM → INTELLIGENCE → ACTION → RESULT</span></div>
   </div>
 </footer>
+<button id="chatlauncher" class="chat-launcher" aria-label="Open EMX AI Assistant chat" aria-expanded="false" aria-controls="chatpanel"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16v9H9l-5 4V6Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9" cy="10.5" r="1.2" fill="currentColor"/><circle cx="13" cy="10.5" r="1.2" fill="currentColor"/><circle cx="17" cy="10.5" r="1.2" fill="currentColor"/></svg></button>
+<section id="chatpanel" class="chat-panel" role="dialog" aria-labelledby="chattitle" hidden>
+  <header class="chat-head">
+    <div><h2 id="chattitle">EMX AI Assistant</h2><p class="chat-status"><span class="cdot" aria-hidden="true"></span>Automated assistant — replies instantly</p></div>
+    <button id="chatclose" class="chat-close" aria-label="Close chat">✕</button>
+  </header>
+  <div id="chatmsgs" class="chat-msgs" role="log" aria-live="polite" aria-label="Conversation"></div>
+  <div id="chattyping" class="chat-typing" hidden aria-hidden="true"><span></span><span></span><span></span></div>
+  <form id="chatform" class="chat-form">
+    <label class="sr" for="chatinput">Type your message</label>
+    <input id="chatinput" name="chatinput" type="text" maxlength="1000" autocomplete="off" placeholder="Ask about AI & automation…">
+    <button id="chatsend" type="submit" aria-label="Send message"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 12 20 4l-4 8 4 8-16-8Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg></button>
+  </form>
+</section>
 <div class="modal" id="modal" role="dialog" aria-modal="true"><div class="modal-bg"></div><div class="modal-box" id="mbox"></div></div>
 <script src="app.js"></script>
+<script src="chat.js"></script>
 </body>
 </html>
