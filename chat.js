@@ -42,10 +42,88 @@
   function scrollDown() { msgs.scrollTop = msgs.scrollHeight; }
 
   function addMsg(who, text) {
-    var b = el('div', 'chat-bubble ' + (who === 'user' ? 'from-user' : 'from-bot'), text);
+    var b = el('div', 'chat-bubble ' + (who === 'user' ? 'from-user' : 'from-bot'));
+    if (who === 'user') {
+      b.textContent = text;
+    } else {
+      b.appendChild(renderBot(text));
+    }
     msgs.appendChild(b);
     scrollDown();
     return b;
+  }
+
+  // Safe mini-markdown for AI replies: paragraphs, line breaks, lists,
+  // [label](https://...) links and bare https:// URLs become real anchors.
+  // AI content is never injected as HTML — only text nodes plus
+  // allow-listed elements (p, br, ul, ol, li, a[http/https]) are created.
+  var URL_RE = /\[([^\]\n]{1,200})\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/[^\s<)\]]+)/g;
+  function isSafeUrl(u) { return /^https?:\/\/[^ \t\n<>"']+$/i.test(u); }
+  function linkLabel(href, label) {
+    if (href.toLowerCase().indexOf('wa.me') > -1 && (!label || label === href)) return 'Chat on WhatsApp';
+    return label || href;
+  }
+  function appendText(parent, raw) {
+    // **bold** within a plain-text run — still no HTML injection (text nodes only).
+    var parts = raw.split(/\*\*([^*]+)\*\*/g);
+    for (var i = 0; i < parts.length; i++) {
+      if (i % 2 === 1 && parts[i]) {
+        var s = document.createElement('strong');
+        s.textContent = parts[i];
+        parent.appendChild(s);
+      } else if (parts[i]) {
+        parent.appendChild(document.createTextNode(parts[i]));
+      }
+    }
+  }
+  function appendInline(parent, raw) {
+    URL_RE.lastIndex = 0;
+    var m, last = 0;
+    while ((m = URL_RE.exec(raw))) {
+      if (m.index > last) appendText(parent, raw.slice(last, m.index));
+      var href = m[2] || m[3];
+      var label = m[2] ? m[1] : href;
+      if (isSafeUrl(href)) {
+        var a = document.createElement('a');
+        a.setAttribute('href', href);
+        a.setAttribute('target', '_blank');
+        a.setAttribute('rel', 'noopener noreferrer');
+        a.className = 'chat-link';
+        appendText(a, linkLabel(href, label));
+        parent.appendChild(a);
+      } else {
+        parent.appendChild(document.createTextNode(m[0]));
+      }
+      last = m.index + m[0].length;
+    }
+    if (last < raw.length) appendText(parent, raw.slice(last));
+  }
+  function renderBot(text) {
+    var frag = document.createDocumentFragment();
+    var blocks = String(text).replace(/\r\n?/g, '\n').split(/\n{2,}/);
+    blocks.forEach(function (block) {
+      var lines = block.split('\n').filter(function (l) { return l.trim() !== ''; });
+      if (!lines.length) return;
+      var isList = lines.every(function (l) { return /^\s*([-*]|\d+[.)])\s+/.test(l); });
+      if (isList) {
+        var ordered = /^\s*\d+[.)]\s+/.test(lines[0]);
+        var list = document.createElement(ordered ? 'ol' : 'ul');
+        lines.forEach(function (l) {
+          var li = document.createElement('li');
+          appendInline(li, l.replace(/^\s*([-*]|\d+[.)])\s+/, ''));
+          list.appendChild(li);
+        });
+        frag.appendChild(list);
+      } else {
+        var p = document.createElement('p');
+        lines.forEach(function (l, i) {
+          if (i > 0) p.appendChild(document.createElement('br'));
+          appendInline(p, l);
+        });
+        frag.appendChild(p);
+      }
+    });
+    return frag;
   }
 
   function addErrorWithRetry() {
@@ -160,5 +238,5 @@
   form.addEventListener('submit', function (e) { e.preventDefault(); send(input.value); });
 
   // Exposed for diagnostics/testing only.
-  window.__emxChat = { parseReply: parseReply, getSessionId: function () { return sid; } };
+  window.__emxChat = { parseReply: parseReply, renderBot: renderBot, getSessionId: function () { return sid; } };
 })();
